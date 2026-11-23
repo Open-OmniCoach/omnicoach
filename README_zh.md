@@ -6,6 +6,8 @@
 
 ### 面向全模态视频智能体的证据增强轨迹学习框架
 
+**项目负责人：** Xiangtai Li
+
 <p>
   <a href="#发布动态与路线图"><img src="https://img.shields.io/badge/Paper-arXiv_(Coming_Soon)-B31B1B?logo=arxiv&logoColor=white" alt="Paper"></a>
   <a href="https://open-omnicoach.github.io"><img src="https://img.shields.io/badge/Project-Page-2E5D66?logo=googlechrome&logoColor=white" alt="Project Page"></a>
