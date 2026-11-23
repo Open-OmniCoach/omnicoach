@@ -35,28 +35,28 @@
 
 ## 发布动态与路线图
 
-- **[2026-11]** 开源 **Open-OmniCoach** 代码库（包含 `harness/`、`sft/`、`rl/` 与 `evalkit/`）。
+- **[2026-11]** 正式发布 **Open-OmniCoach** 开源代码（`harness/`、`sft/`、`rl/`、`evalkit/`）、[项目主页](https://open-omnicoach.github.io)、[**Open-OmniAgent-7B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) 与 [**Open-OmniAgent-30B-A3B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) 模型权重，以及 [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) 轨迹数据集。
 
 **已发布**
+- [x] [项目主页与交互式轨迹浏览器](https://open-omnicoach.github.io)
 - [x] 离线轨迹采集框架（[`harness/`](harness/README.md)）
 - [x] Agent SFT 训练与共享媒体 Parquet 管线（[`sft/`](sft/README.md)）
 - [x] Qwen3-Omni RL 引擎、Turn-Level GSPO 与 GRPO/GSPO 配方（[`rl/`](rl/README.md)）
 - [x] 推理与基准评测集成 [Video Agent EvalKit](https://github.com/Open-OmniCoach/video-agent-evalkit/tree/omnicoach)（`evalkit/`）
+- [x] Hugging Face 模型权重（[`Open-OmniAgent-7B`](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) & [`Open-OmniAgent-30B-A3B`](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B)）
+- [x] Hugging Face 轨迹数据集（[`OmniCoach-240K`](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K)）
 
 **即将发布**
-- [ ] arXiv 技术报告
-- [ ] [项目主页与交互式轨迹浏览器](https://open-omnicoach.github.io)
-- [ ] Hugging Face 模型权重（`Open-OmniAgent-7B` & `Open-OmniAgent-30B-A3B`）
-- [ ] Hugging Face 轨迹数据集（`OmniCoach-240K`）
+- [ ] arXiv 论文
 - [ ] 完整 SEPO 步级信用 RL 配方
 
 ## 模型与数据集
 
 | 产出 | 基座模型 / 构成 | 规模 | 发布状态 |
 | --- | --- | --- | --- |
-| [**Open-OmniAgent-7B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) | Qwen2.5-Omni-7B | 7B | 仓库已就绪 · 权重即将上传 |
-| [**Open-OmniAgent-30B-A3B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) | Qwen3-Omni-30B-A3B-Instruct | 30B（3B 激活 MoE） | 仓库已就绪 · 权重即将上传 |
-| [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) | 230.7K 多片段轨迹 + 17.4K 反思纠错轨迹 | 248.2K 轨迹 | 仓库已就绪 · 数据即将上传 |
+| [**Open-OmniAgent-7B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) | Qwen2.5-Omni-7B | 7B | 已发布 |
+| [**Open-OmniAgent-30B-A3B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) | Qwen3-Omni-30B-A3B-Instruct | 30B（3B 激活 MoE） | 已发布 |
+| [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) | 230.7K 多片段轨迹 + 17.4K 反思纠错轨迹 | 248.2K 轨迹 | 已发布 |
 
 ## 核心性能一览
 
@@ -100,7 +100,7 @@
 
 轨迹级统一优势无法区分一次 rollout 中“拿到关键证据的步骤”和“冗余调用”。**SEPO** 基于每步新覆盖的标注证据增益 $\Delta U$ 计算步级过程信用，并通过 **Turn-Level GSPO**（`--use-turn-level-gspo`）按轮次计算几何平均重要性比率进行策略更新。
 
-> **说明：** 当前仓库已在 [`rl/`](rl/README.md) 开放通用的 Turn-Level GSPO 引擎（`--use-turn-level-gspo`）与纯结果奖励的 Agent-GSPO 配方；完整的 SEPO 步级信用配方将随技术报告一并开源。
+> **说明：** 当前仓库已在 [`rl/`](rl/README.md) 开放通用的 Turn-Level GSPO 引擎（`--use-turn-level-gspo`）与纯结果奖励的 Agent-GSPO 配方；完整的 SEPO 步级信用配方将随论文一并开源。
 
 ## 仓库目录与快速开始
 

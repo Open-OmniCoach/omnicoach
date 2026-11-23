@@ -35,30 +35,30 @@
 
 ## News & Release Roadmap
 
-- **[2026-11]** Released the **Open-OmniCoach** codebase (`harness/`, `sft/`, `rl/`, and `evalkit/`).
+- **[2026-11]** Released the **Open-OmniCoach** codebase (`harness/`, `sft/`, `rl/`, `evalkit/`), interactive [project page](https://open-omnicoach.github.io), [**Open-OmniAgent-7B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) & [**Open-OmniAgent-30B-A3B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) checkpoints, and [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) trajectory dataset.
 
 **Released**
+- [x] [Project page & interactive trajectory explorer](https://open-omnicoach.github.io)
 - [x] Offline trace-collection harness ([`harness/`](harness/README.md))
 - [x] Agent SFT & shared-media Parquet pipeline ([`sft/`](sft/README.md))
 - [x] Qwen3-Omni RL engine, Turn-Level GSPO & GRPO/GSPO recipes ([`rl/`](rl/README.md))
 - [x] Inference & benchmark evaluation via [Video Agent EvalKit](https://github.com/Open-OmniCoach/video-agent-evalkit/tree/omnicoach) (`evalkit/`)
+- [x] [`Open-OmniAgent-7B`](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) & [`Open-OmniAgent-30B-A3B`](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) checkpoints on Hugging Face
+- [x] [`OmniCoach-240K`](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) trajectory dataset on Hugging Face
 
 **Upcoming**
-- [ ] Technical report on arXiv
-- [ ] [Project page & interactive trajectory explorer](https://open-omnicoach.github.io)
-- [ ] `Open-OmniAgent-7B` & `Open-OmniAgent-30B-A3B` checkpoints on Hugging Face
-- [ ] `OmniCoach-240K` trajectory dataset on Hugging Face
+- [ ] Paper on arXiv
 - [ ] Full SEPO step-level credit RL recipe
 
 ## Model and Dataset Zoo
 
 | Artifact | Base Model / Composition | Scale | Status |
 | --- | --- | --- | --- |
-| [**Open-OmniAgent-7B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) | Qwen2.5-Omni-7B | 7B | Repo ready · weights coming soon |
-| [**Open-OmniAgent-30B-A3B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) | Qwen3-Omni-30B-A3B-Instruct | 30B (3B active MoE) | Repo ready · weights coming soon |
-| [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) | 230.7K multi-span + 17.4K reflection trajectories | 248.2K trajectories | Repo ready · data coming soon |
+| [**Open-OmniAgent-7B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) | Qwen2.5-Omni-7B | 7B | Available |
+| [**Open-OmniAgent-30B-A3B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) | Qwen3-Omni-30B-A3B-Instruct | 30B (3B active MoE) | Available |
+| [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) | 230.7K multi-span + 17.4K reflection trajectories | 248.2K trajectories | Available |
 
-> All artifacts are grouped in the [**Open-OmniCoach Hugging Face Collection**](https://huggingface.co/collections/Open-OmniCoach/open-omnicoach-6b02b581ecac90284c6009d9); checkpoint weights and dataset files will be published upon public release. All training, inference, and evaluation pipelines already run end-to-end with compatible Qwen2.5-Omni / Qwen3-Omni checkpoints.
+> All checkpoints and trajectory datasets are publicly available in the [**Open-OmniCoach Hugging Face Collection**](https://huggingface.co/collections/Open-OmniCoach/open-omnicoach-6b02b581ecac90284c6009d9).
 
 ## Performance at a Glance
 
@@ -164,7 +164,7 @@ Starting from a coarse overview of the video, the agent iteratively requests fin
 
 Trajectory-level RL rewards assign the same advantage to every step in a rollout, blurring useful evidence retrieval and redundant calls. **SEPO** scores each tool turn by its incremental gain in annotated evidence coverage and temporal localization ($\Delta U$), combining outcome advantage with step-conditioned leave-one-out process credit and optimizing per-turn policy ratios via **Turn-Level GSPO** (`--use-turn-level-gspo`).
 
-> **Note:** The generic Turn-Level GSPO engine (`--use-turn-level-gspo`) and outcome-based Agent-GSPO recipe are included in [`rl/`](rl/README.md). The full SEPO step-level credit recipe will be released alongside the technical report.
+> **Note:** The generic Turn-Level GSPO engine (`--use-turn-level-gspo`) and outcome-based Agent-GSPO recipe are included in [`rl/`](rl/README.md). The full SEPO step-level credit recipe will be released alongside the paper.
 
 ## Repository Structure
 
