@@ -1,0 +1,1 @@
+{"task_id": "demo-0001", "video_path": "/absolute/path/to/clip.mp4", "question": "What does the speaker do right after putting the box down?", "question_type": "mcq", "options": ["Opens the window", "Answers the phone", "Leaves the room", "Sits down"], "answer": "B", "duration_seconds": 184.0, "has_audio": true}

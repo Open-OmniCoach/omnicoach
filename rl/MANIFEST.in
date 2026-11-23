@@ -1,0 +1,13 @@
+include README.md pyproject.toml install.sh
+include tools/README.md
+recursive-include tools/env *.sh *.env *.patch *.py requirements.build-wheel
+recursive-include tools/checkpoints *.py
+recursive-include slime_ext *.py *.jinja
+recursive-include tests *.py
+prune runs
+prune outputs
+prune docs
+prune third_party
+prune .deps
+prune .venv
+global-exclude __pycache__ *.py[cod]

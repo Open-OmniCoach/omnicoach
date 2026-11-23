@@ -1,0 +1,41 @@
+# One actor route against an OpenAI-compatible endpoint you run yourself.
+# Copy this file, then set base_url, model and the two io paths.
+stage: actor
+
+route:
+  entrypoint: omnicoach_harness.protocol.route:build
+
+io:
+  input: /absolute/path/to/tasks.jsonl
+  output_dir: /absolute/path/to/runs/demo
+
+provider:
+  backend: openai_compat
+  # One endpoint, or a list to round-robin across replicas.
+  base_url: http://127.0.0.1:8000/v1
+  model: your-served-model-id
+  # Taken from OPENAI_API_KEY when omitted; local servers usually ignore it.
+  # api_key: EMPTY
+  # Standard SGLang / vLLM-Omni servers expect audio_url (the default).
+  # Set audio_part_type: image_url only for legacy gateways wrapping audio in image_url parts.
+  # audio_part_type: audio_url
+  # vLLM and SGLang accept chat_template_kwargs. Remove or set to {} when the
+  # endpoint rejects unknown body fields.
+  extra_body:
+    chat_template_kwargs:
+      enable_thinking: false
+  max_tokens: 32768
+  retries: 10
+  request_timeout_seconds: 300
+
+execution:
+  workers: 4
+  rollouts: 1
+  attempts: 1
+
+sampling:
+  temperature: 0.0
+
+system:
+  ffmpeg: ffmpeg
+  ffprobe: ffprobe

@@ -1,0 +1,109 @@
+[build-system]
+requires = ["setuptools >= 64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slime-ext"
+version = "0.3.0"
+description = "Qwen3-Omni multimodal RL extensions, active-perception agent runtime, and Turn-Level GSPO for THUDM/slime"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "decord",
+    "numpy>=1.26.4",
+    "qwen-omni-utils>=0.0.9",
+    "PyYAML",
+    "pyarrow",
+    "Pillow",
+    "pybase64",
+    "httpx",
+    "Jinja2",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[dependency-groups]
+env = [
+    "slime",
+    "sglang[all]",
+    "sglang-router @ https://github.com/zhuzilin/sgl-router/releases/download/v0.3.2-9daabcd/sglang_router-0.3.2-cp38-abi3-manylinux_2_28_x86_64.whl",
+    "megatron-core",
+    "nvidia-resiliency-ext==0.7.0",
+
+    "blake3",
+    "decord",
+    "numpy==2.3.5",
+    "qwen-omni-utils>=0.0.9",
+    "xxhash",
+    "zstandard",
+
+    "cmake",
+    "ninja",
+    "pybind11",
+    "setuptools<80.0.0",
+    "packaging>=24.2",
+    "flash-linear-attention==0.5.2",
+    "tilelang==0.1.12",
+    "transformer_engine[pytorch,core_cu13]==2.18.0",
+    "nvidia-modelopt[torch]>=0.37.0",
+    "kernels<0.15.0",
+]
+
+[tool.uv]
+default-groups = []
+index-strategy = "unsafe-best-match"
+link-mode = "copy"
+torch-backend = "cu130"
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+megatron-core = { path = ".deps/Megatron-LM", editable = true }
+sglang = { path = ".deps/sglang/python", editable = true }
+slime = { path = "third_party/slime", editable = true }
+torch = { index = "pytorch-cu130" }
+torchao = { index = "pytorch-cu130" }
+torchaudio = { index = "pytorch-cu130" }
+torchvision = { index = "pytorch-cu130" }
+
+[tool.uv.pip]
+no-annotate = true
+no-emit-package = [
+    "megatron-core",
+    "sglang",
+    "slime",
+    "slime-ext",
+    "torch-memory-saver",
+]
+no-header = true
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+namespaces = false
+include = [
+    "slime_ext",
+    "slime_ext.*",
+]
+
+[tool.setuptools.package-data]
+"slime_ext.agent" = ["*.jinja", "**/*.jinja"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["F", "E9", "W", "I", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["slime_ext", "examples"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

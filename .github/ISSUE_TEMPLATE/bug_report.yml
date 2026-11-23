@@ -1,0 +1,35 @@
+name: Bug Report
+description: Report a bug in sft/, rl/, harness/, or evalkit/
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options:
+        - rl/
+        - sft/
+        - harness/
+        - evalkit/ (submodule)
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Clear description of the bug and the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps & logs
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "Python version, PyTorch / CUDA / SGLang / Megatron version, GPU model"

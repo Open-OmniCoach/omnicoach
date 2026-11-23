@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-syntax:
+    name: Lint & Syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: uv tool install ruff
+      - name: Ruff checks (harness, sft, rl)
+        run: |
+          (cd harness && ruff check src tests)
+          (cd sft && ruff check src tests)
+          (cd rl && ruff check slime_ext examples tools tests)
+      - name: Python compileall & shell syntax
+        run: |
+          python3 -m compileall -q harness/src harness/tests sft/src sft/tests rl
+          find sft harness rl -name "*.sh" -print0 | xargs -0 -n 1 bash -n
+
+  harness-cpu:
+    name: Harness CPU Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install & test harness
+        working-directory: harness
+        run: |
+          uv lock --check
+          uv sync --locked --extra dev
+          uv run pytest -v tests
+          uv run omnicoach-harness doctor
+
+  sft-cpu:
+    name: SFT CPU Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Run SFT tests & launcher dry-runs
+        working-directory: sft
+        run: |
+          uv venv --python 3.12 .ci-venv
+          uv pip install --python .ci-venv/bin/python --index-strategy unsafe-best-match \
+            --extra-index-url https://download.pytorch.org/whl/cpu \
+            -e . pytest pyarrow pyyaml pillow numpy datasets tqdm torch
+          .ci-venv/bin/python -m pytest -v tests
+          DRY_RUN=1 PYTHON_BIN=.ci-venv/bin/python bash scripts/train.sh config/train/qwen3_omni_agent_sft.yaml
+
+  rl-cpu:
+    name: RL CPU Tests & Patch Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Populate & patch pinned THUDM/slime
+        working-directory: rl
+        run: |
+          source tools/env/versions.env
+          git clone --filter=blob:none https://github.com/THUDM/slime.git third_party/slime
+          git -C third_party/slime checkout "${SLIME_COMMIT}"
+          bash tools/env/prepare_slime.sh apply
+          bash tools/env/prepare_slime.sh check
+      - name: Run RL CPU tests & recipe dry-runs
+        working-directory: rl
+        run: |
+          uv venv --python 3.12 .ci-venv
+          uv pip install --python .ci-venv/bin/python --index-strategy unsafe-best-match \
+            --extra-index-url https://download.pytorch.org/whl/cpu \
+            torch pytest pyyaml pillow numpy transformers httpx jinja2 requests
+          CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=".:third_party/slime" \
+            .ci-venv/bin/python -m pytest -v tests/core tests/agent tests/examples
+          for ex in qwen3_omni_rl qwen3_omni_agent_gspo; do
+            DRY_RUN=1 PYTHON_BIN=.ci-venv/bin/python bash "examples/${ex}/run.sh"
+          done

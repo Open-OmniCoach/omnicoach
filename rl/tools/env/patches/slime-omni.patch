@@ -1,0 +1,317 @@
+diff --git a/slime/backends/megatron_utils/model.py b/slime/backends/megatron_utils/model.py
+index 51884e95..090953e5 100644
+--- a/slime/backends/megatron_utils/model.py
++++ b/slime/backends/megatron_utils/model.py
+@@ -621,6 +621,9 @@ def train_one_step(
+                     "rollout_top_p_log_probs",
+                     "teacher_log_probs",
+                     "rollout_mask_sums",
++                    "token_advantages",
++                    "turn_ids",
++                    "turn_weights",
+                     # Only present when dumping train debug data; lets the loss
+                     # snapshot each sample's log_probs keyed by rollout position.
+                     *(["partition"] if args.save_debug_train_data is not None else []),
+diff --git a/slime/backends/sglang_utils/engine_group.py b/slime/backends/sglang_utils/engine_group.py
+index 1da05c4d..0167dccc 100644
+--- a/slime/backends/sglang_utils/engine_group.py
++++ b/slime/backends/sglang_utils/engine_group.py
+@@ -134,7 +134,7 @@ class ServerGroup:
+             "moe_dp_size": int(overrides.get("moe_dp_size", getattr(self.args, "sglang_moe_dp_size", 1))),
+         }
+ 
+-    def start_engines(self, port_cursors: dict[int, int] | None = None) -> tuple[list, dict[int, int]]:
++    def start_engines(self, port_cursors: dict[Any, int] | None = None) -> tuple[list, dict[Any, int]]:
+         """Create Ray actors, allocate ports, and fire ``engine.init()`` without waiting.
+ 
+         Returns ``(init_handles, port_cursors)`` where *init_handles* is a list
+@@ -243,6 +243,10 @@ class ServerGroup:
+             args=self.args,
+             rollout_engines=rollout_engines,
+             worker_type=self.worker_type,
++            allocate_encoder_bootstrap=bool(
++                self.sglang_overrides.get("language_only")
++                or self.sglang_overrides.get("language-only")
++            ),
+             num_gpus_per_engine=self.num_gpus_per_engine,
+             rank_offset=self.rank_offset,
+             base_port=base_port,
+@@ -351,7 +355,7 @@ class RolloutServer:
+         dead_per_group = [[i for i, engine in enumerate(g.all_engines) if engine is None] for g in self.server_groups]
+ 
+         all_handles = []
+-        port_cursors: dict[int, int] = {}
++        port_cursors: dict[Any, int] = {}
+         for g in self.server_groups:
+             handles, port_cursors = g.start_engines(port_cursors)
+             all_handles.extend(handles)
+@@ -424,6 +428,37 @@ class RolloutServer:
+         return ray.get(handles) if handles else []
+ 
+ 
++def get_updatable_server_engines(server, *, with_meta: bool = False):
++    """Return updatable engines for *server*, excluding encoder-only EPD groups.
++
++    When *with_meta* is False, returns only live (non-None) engines.
++    When *with_meta* is True, returns ``(engines, num_new, gpu_counts, gpu_offsets, parallel_configs)``.
++    """
++    if server is None:
++        return ([], 0, [], [], []) if with_meta else []
++    if not hasattr(server, "server_groups"):
++        if not with_meta:
++            return [e for e in server.engines if e is not None]
++        return (
++            server.engines,
++            server.num_new_engines,
++            server.engine_gpu_counts,
++            server.engine_gpu_offsets,
++            server.engine_parallel_configs,
++        )
++    groups = [g for g in server.server_groups if g.worker_type != "encoder"]
++    engines = [e for g in groups for e in g.engines]
++    if not with_meta:
++        return [e for e in engines if e is not None]
++    return (
++        engines,
++        sum(g.num_new_engines for g in groups),
++        [g.num_gpus_per_engine for g in groups for _ in g.engines],
++        [g.gpu_offset + i * g.num_gpus_per_engine for g in groups for i in range(len(g.engines))],
++        [g.parallel_config() for g in groups for _ in g.engines],
++    )
++
++
+ @dataclasses.dataclass
+ class ServerGroupPlacement:
+     """Track rank and GPU offsets while materializing configured server groups."""
+@@ -486,6 +521,7 @@ def _allocate_rollout_engine_addr_and_ports_normal(
+     args,
+     rollout_engines,
+     worker_type="regular",
++    allocate_encoder_bootstrap=False,
+     num_gpus_per_engine=None,
+     rank_offset=0,
+     base_port=15000,
+@@ -494,7 +530,42 @@ def _allocate_rollout_engine_addr_and_ports_normal(
+     gpus_per_engine = num_gpus_per_engine or args.rollout_num_gpus_per_engine
+     num_engines_per_node = max(1, args.num_gpus_per_node // gpus_per_engine)
+     addr_and_ports: dict[int, dict] = {}
+-    node_port_cursor: dict[int, int] = {}
++    node_port_cursor: dict[Any, int] = {}
++
++    # A heterogeneous EPD group can begin partway through a node (for example,
++    # TP1 encoders on GPUs 0-1 followed by TP2 language engines). Allocate each
++    # node-local engine from the actor that Ray placed, keyed by its host IP.
++    if gpus_per_engine <= args.num_gpus_per_node:
++        for rank, engine in rollout_engines:
++            host, _ = ray.get(engine._get_current_node_ip_and_free_port.remote())
++            start_port = node_port_cursor.get(host, base_port)
++
++            def port(consecutive=1):
++                nonlocal start_port
++                _, allocated = ray.get(
++                    engine._get_current_node_ip_and_free_port.remote(
++                        start_port=start_port,
++                        consecutive=consecutive,
++                    )
++                )
++                start_port = allocated + consecutive
++                node_port_cursor[host] = start_port
++                return allocated
++
++            addr_and_ports[rank] = {
++                "host": host,
++                "port": port(),
++                "nccl_port": port(),
++            }
++            if worker_type == "prefill":
++                addr_and_ports[rank]["disaggregation_bootstrap_port"] = port()
++            if allocate_encoder_bootstrap:
++                addr_and_ports[rank]["encoder_bootstrap_port"] = port()
++            addr_and_ports[rank]["dist_init_addr"] = f"{host}:{port(30 + args.sglang_dp_size)}"
++
++        for rank, _ in rollout_engines:
++            logger.info(f"Ports for engine {rank}: {addr_and_ports[rank]}")
++        return addr_and_ports, node_port_cursor
+ 
+     visited_nodes = set()
+     for rank, engine in rollout_engines:
+@@ -537,6 +608,8 @@ def _allocate_rollout_engine_addr_and_ports_normal(
+ 
+             if worker_type == "prefill":
+                 addr_and_ports[current_rank]["disaggregation_bootstrap_port"] = get_port()
++            if allocate_encoder_bootstrap:
++                addr_and_ports[current_rank]["encoder_bootstrap_port"] = get_port()
+ 
+         if gpus_per_engine > args.num_gpus_per_node:
+             num_node_per_engine = gpus_per_engine // args.num_gpus_per_node
+diff --git a/slime/backends/sglang_utils/sglang_engine.py b/slime/backends/sglang_utils/sglang_engine.py
+index 395da5b0..c8ed3363 100644
+--- a/slime/backends/sglang_utils/sglang_engine.py
++++ b/slime/backends/sglang_utils/sglang_engine.py
+@@ -154,6 +154,7 @@ class SGLangEngine(RayActor):
+         nccl_port,
+         host=None,
+         disaggregation_bootstrap_port=None,
++        encoder_bootstrap_port=None,
+         router_ip=None,
+         router_port=None,
+     ):
+@@ -185,6 +186,7 @@ class SGLangEngine(RayActor):
+             port,
+             self.worker_type,
+             disaggregation_bootstrap_port,
++            encoder_bootstrap_port,
+             base_gpu_id=self.base_gpu_id,
+             sglang_overrides=self.sglang_overrides,
+             num_gpus_per_engine=self.num_gpus_per_engine,
+@@ -584,6 +586,7 @@ def _compute_server_args(
+     port,
+     worker_type: str = "regular",
+     disaggregation_bootstrap_port: int | None = None,
++    encoder_bootstrap_port: int | None = None,
+     base_gpu_id: int | None = None,
+     sglang_overrides: dict | None = None,
+     num_gpus_per_engine: int | None = None,
+@@ -638,6 +641,9 @@ def _compute_server_args(
+     elif worker_type == "encoder":
+         kwargs["encoder_only"] = True
+ 
++    if encoder_bootstrap_port is not None:
++        kwargs["encoder_bootstrap_port"] = encoder_bootstrap_port
++
+     if args.use_rollout_routing_replay:
+         kwargs["enable_return_routed_experts"] = True
+     if args.fp16:
+diff --git a/slime/data/batch_builder.py b/slime/data/batch_builder.py
+index 3e178b70..6e20857b 100644
+--- a/slime/data/batch_builder.py
++++ b/slime/data/batch_builder.py
+@@ -482,6 +482,9 @@ class BatchBuilder:
+             "source_names",
+             "prompt",
+             "teacher_log_probs",
++            "token_advantages",
++            "turn_ids",
++            "turn_weights",
+         ]
+         if transport == "straw":
+             from straw.protocol import digest
+diff --git a/slime/observability/rollout_data_utils.py b/slime/observability/rollout_data_utils.py
+index 06f9f387..cb5691ae 100644
+--- a/slime/observability/rollout_data_utils.py
++++ b/slime/observability/rollout_data_utils.py
+@@ -22,6 +22,9 @@ _ROLLOUT_DATA_TENSOR_DTYPES = {
+     "rollout_top_p_log_probs": torch.float32,
+     "teacher_log_probs": torch.float32,
+     "rollout_routed_experts": None,
++    "token_advantages": torch.float32,
++    "turn_ids": torch.long,
++    "turn_weights": torch.float32,
+ }
+ 
+ 
+diff --git a/slime/ray/rollout.py b/slime/ray/rollout.py
+index 07c83ab4..4feefc64 100644
+--- a/slime/ray/rollout.py
++++ b/slime/ray/rollout.py
+@@ -7,6 +7,7 @@ from typing import Any
+ 
+ import ray
+ 
++from slime.backends.sglang_utils.engine_group import get_updatable_server_engines
+ from slime.data.batch_builder import BatchBuilder
+ from slime.data.transport import DiskPayloadRef, accept_raw_rollout, check_rollout_storage, load_rollout_samples
+ from slime.observability import logging_utils
+@@ -263,10 +264,9 @@ class RolloutManager:
+             self.recovery.checkpoint_committed(rollout_id)
+ 
+     def get_weight_version(self):
+-        if self.serving is not None:
++        if getattr(self, "serving", None) is not None:
+             return ray.get(self.serving.get_weight_version.remote())
+-        server = self._get_updatable_server()
+-        engines = [engine for engine in server.engines if engine is not None] if server else []
++        engines = get_updatable_server_engines(self._get_updatable_server())
+         versions = ray.get([engine.get_weight_version.remote() for engine in engines])
+         if not versions:
+             return None
+@@ -299,16 +299,13 @@ class RolloutManager:
+ 
+         Returns engines from the first model that has
+         ``update_weights=True``.  Frozen models (reference, reward,
+-        etc.) are automatically excluded.
++        etc.) and encoder-only groups are automatically excluded.
+         """
+-        if self.serving is not None:
++        if getattr(self, "serving", None) is not None:
+             return ray.get(self.serving.get_updatable_engines_and_lock.remote())
+-        srv = self._get_updatable_server()
+-        engines = srv.engines if srv else []
+-        gpu_counts = srv.engine_gpu_counts if srv else []
+-        gpu_offsets = srv.engine_gpu_offsets if srv else []
+-        parallel_configs = srv.engine_parallel_configs if srv else []
+-        num_new = srv.num_new_engines if srv else 0
++        engines, num_new, gpu_counts, gpu_offsets, parallel_configs = get_updatable_server_engines(
++            self._get_updatable_server(), with_meta=True
++        )
+         return engines, self.rollout_engine_lock, num_new, gpu_counts, gpu_offsets, parallel_configs
+ 
+     def get_num_rollout_per_epoch(self):
+@@ -535,8 +532,7 @@ class RolloutManager:
+             if fully_async_metrics_enabled(self.args):
+                 # The training loop keeps serving weights fixed while collecting
+                 # this batch. Query only the updatable model.
+-                server = self._get_updatable_server()
+-                engines = [engine for engine in server.engines if engine is not None] if server else []
++                engines = get_updatable_server_engines(self._get_updatable_server())
+                 versions = ray.get([engine.get_weight_version.remote() for engine in engines])
+                 valid = bool(versions) and all(
+                     str(version).isascii() and str(version).isdigit() for version in versions
+diff --git a/slime/ray/serving.py b/slime/ray/serving.py
+index b7e979b4..8c0814f5 100644
+--- a/slime/ray/serving.py
++++ b/slime/ray/serving.py
+@@ -12,6 +12,7 @@ from dataclasses import dataclass
+ 
+ import ray
+ 
++from slime.backends.sglang_utils.engine_group import get_updatable_server_engines
+ from slime.ray.training_recovery import retained_rollout_configuration
+ from slime.ray.utils import Lock
+ from slime.utils.cleanup import Cleanup
+@@ -160,6 +161,9 @@ class ServingCluster:
+                 # Healthy engines are also new peers from the trainer's point
+                 # of view; mark them for connection on the next weight update.
+                 for group in server.server_groups:
++                    if group.worker_type == "encoder":
++                        group.num_new_engines = 0
++                        continue
+                     group.num_new_engines = len([engine for engine in group.engines if engine is not None])
+         # Internal serving is always monitored, independently of the legacy flag.
+         # Rebuild paused monitors using this attempt's health-check settings. The
+@@ -222,21 +226,13 @@ class ServingCluster:
+         return next((server for server in self.servers.values() if server.update_weights), None)
+ 
+     def get_updatable_engines_and_lock(self):
+-        server = self._updatable_server()
+-        if server is None:
+-            return [], self.lock, 0, [], [], []
+-        return (
+-            server.engines,
+-            self.lock,
+-            server.num_new_engines,
+-            server.engine_gpu_counts,
+-            server.engine_gpu_offsets,
+-            server.engine_parallel_configs,
++        engines, num_new, gpu_counts, gpu_offsets, parallel_configs = get_updatable_server_engines(
++            self._updatable_server(), with_meta=True
+         )
++        return engines, self.lock, num_new, gpu_counts, gpu_offsets, parallel_configs
+ 
+     def get_weight_version(self, *, allow_inconsistent=False):
+-        server = self._updatable_server()
+-        engines = [engine for engine in server.engines if engine is not None] if server else []
++        engines = get_updatable_server_engines(self._updatable_server())
+         versions = ray.get(
+             [engine.get_weight_version.remote() for engine in engines], timeout=self.args.rollout_health_check_timeout
+         )

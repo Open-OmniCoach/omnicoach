@@ -1,0 +1,4 @@
+[submodule "evalkit"]
+	path = evalkit
+	url = https://github.com/Open-OmniCoach/video-agent-evalkit.git
+	branch = omnicoach

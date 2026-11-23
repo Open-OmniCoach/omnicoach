@@ -1,0 +1,227 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/omnicoach_sft"]
+
+[dependency-groups]
+train-common = [
+  # override ms-swift and transformers version in [tool.uv.override-dependencies] to get the latest features
+  "ms-swift",
+  "transformers==5.8.1",
+  "qwen_vl_utils==0.0.14",
+  "qwen_omni_utils==0.0.9",
+  "decord==0.6.0; sys_platform != 'darwin'",
+  "tabulate==0.10.0",
+  "omegaconf",
+  "loguru",
+  "tqdm",
+  "python-dotenv",
+  "math-verify",
+  # Training dependencies
+  "deepspeed",
+  "wandb",
+  "bitsandbytes",
+  "weave",
+  "flash-linear-attention==0.4.2",
+  # megatron dependencies
+  "megatron-core==0.18.0",
+  "transformer-engine[core_cu12,pytorch]==2.16.1",
+  "mcore-bridge==1.5.2",
+]
+train = [
+  {include-group = "train-common"},
+  "torch==2.12.1",
+  "torchvision==0.27.1",
+  "causal-conv1d @ https://github.com/protopia-ai/causal-conv1d/releases/download/v1.6.2.post1.nemotron_ultra_training_long_context_par.1/causal_conv1d-1.6.2.post1%2Bcu12torch2.12cxx11abiTRUE-cp312-cp312-linux_x86_64.whl",
+  "flash-attn @ https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.9.0/flash_attn-2.8.3+cu128torch2.10-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl ; sys_platform == 'linux' and platform_machine == 'x86_64' and python_version == '3.12'",
+]
+h100 = [
+  {include-group = "train"},
+  "flash-attn-3==3.0.0; sys_platform == 'linux' and platform_machine == 'x86_64'",
+]
+b200 = [
+  {include-group = "train"},
+  # Packed BF16 GQA verified with TE 2.16.1 on B200; keep the CuTe stack together.
+  "flash-attn-4==4.0.0b11",
+  "nvidia-cutlass-dsl==4.4.2",
+  "nvidia-cutlass-dsl-libs-base==4.4.2",
+  "apache-tvm-ffi==0.1.14.post0",
+  "torch-c-dlpack-ext==0.1.5",
+  "quack-kernels==0.4.0",
+]
+a100 = [
+  {include-group = "train-common"},
+  "torch==2.11.0",
+  "torchvision==0.26.0",
+  # This wheel contains sm_80 cubins. The similarly named nguyen599 wheel only
+  # contains sm_89+ and fails on A100 with cudaErrorNoKernelImageForDevice.
+  "causal-conv1d @ https://github.com/qthequartermasterman/causal-conv1d/releases/download/v1.6.2.post1/causal_conv1d-1.6.2.post1+cu12torch2.11cxx11abiTRUE-cp312-cp312-linux_x86_64.whl",
+  "flash-attn @ https://github.com/lesj0610/flash-attention/releases/download/v2.8.3-cu12-torch2.11/flash_attn-2.8.3%2Bcu12torch2.11cxx11abiTRUE-cp312-cp312-linux_x86_64.whl",
+]
+extra = [
+  "apex",
+]
+test = [
+  "coverage",
+  "pytest",
+  "pytest-cov",
+]
+test-cpu = [
+  "datasets",
+  "numpy",
+  "pillow",
+  "pyarrow",
+  "pytest",
+  "pyyaml",
+  "ruff",
+  "tqdm",
+]
+typing = [
+  "pre-commit",
+  "mypy",
+  "ruff",
+]
+dev = [
+  {include-group = "h100"},
+  {include-group = "test"},
+  {include-group = "typing"},
+]
+
+[project]
+authors = [{name = "OmniCoach Authors"}]
+classifiers = [
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = []
+description = "OmniCoach Agent supervised fine-tuning with Swift/Megatron"
+license = {text = "Apache-2.0"}
+name = "omnicoach-sft"
+readme = "README.md"
+requires-python = "==3.12.*"
+version = "0.1.0"
+
+[project.scripts]
+omnicoach-sft-export = "omnicoach_sft.data.export:main"
+omnicoach-sft-inspect = "omnicoach_sft.data.inspect:main"
+omnicoach-sft-verify-encode = "omnicoach_sft.train.verify_encode:main"
+
+[project.urls]
+Homepage = "https://github.com/Open-OmniCoach/omnicoach"
+Repository = "https://github.com/Open-OmniCoach/omnicoach"
+
+[tool.coverage.report]
+exclude_also = [
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "except Exception as e",
+]
+
+[tool.coverage.run]
+omit = []
+
+[tool.mypy]
+disable_error_code = "attr-defined"
+disallow_any_generics = false
+disallow_subclassing_any = false
+ignore_missing_imports = true
+strict = true
+warn_return_any = false
+
+[tool.ruff]
+line-length = 120
+src = ["src", "tests"]
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+extend-ignore = [
+  "B018",
+  "B019",
+  "RUF001",
+  "PGH003",
+  "PGH004",
+  "RUF003",
+  "E402",
+  "RUF002",
+  "B904",
+  "TRY004",  # JSON/YAML/Parquet schema validators intentionally raise ValueError
+  "BLE001",  # distributed worker barrier intentionally captures any worker exception
+]
+extend-select = [
+  "I",  # isort
+  "B",  # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "PGH",  # pygrep-hooks
+  "RUF",  # ruff
+  "W",  # pycodestyle
+  "YTT",  # flake8-2020
+]
+fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401", "F403"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.uv]
+default-groups = []
+conflicts = [
+  [
+    {group = "train"},
+    {group = "a100"},
+  ],
+]
+no-build-isolation-package = ["transformer-engine-torch", "apex"]
+override-dependencies = [
+  "peft==0.18.1",
+  "trl==0.29.1",
+  # transformer-engine-torch sdist statically declares cu13 as a dependency,
+  # but we only have CUDA 12. Override it away so only cu12 (from core_cu12
+  # extra) is installed — both write to the same .so path and cu13's needs
+  # libcublas.so.13 which doesn't exist on CUDA 12 systems.
+  "transformer-engine-cu13 ; python_version < '0'",
+]
+prerelease = "if-necessary"
+
+# Apex imports Torch and probes CUDA while generating package metadata. Its
+# dependency set is static, so provide it explicitly and keep lock resolution
+# independent from the machine used to update uv.lock.
+[[tool.uv.dependency-metadata]]
+name = "apex"
+version = "0.1"
+requires-dist = ["packaging"]
+
+[[tool.uv.index]]
+explicit = true
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu129"
+
+[tool.uv.sources]
+apex = {git = "https://github.com/nvidia/apex", rev = "becbb77cea4cb54f2929f7c938a0a6f7dd1fdc39"}
+flash-attn-3 = [
+  {index = "pytorch-cuda", marker = "sys_platform == 'linux' and platform_machine == 'x86_64'"},
+]
+ms-swift = {git = "https://github.com/modelscope/ms-swift", rev = "e672d99e32cb91fd80eb9a1e3ce3de8df66d62c4"}
+torch = [
+  {index = "pytorch-cuda", marker = "sys_platform != 'darwin'"},
+]
+torchvision = [
+  {index = "pytorch-cuda", marker = "sys_platform != 'darwin'"},
+]

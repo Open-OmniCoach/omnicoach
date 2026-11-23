@@ -1,0 +1,9 @@
+# Wheels intentionally built on the local node, not downloaded as-is.
+
+flash-attn==2.8.3
+flash_qla @ git+https://github.com/QwenLM/FlashQLA.git@6ef4858b5446e05bd461d9658d877e548182dbcb
+torch_memory_saver @ git+https://github.com/zhuzilin/torch_memory_saver.git@bdab8c55f490a00a746ec34e301391617f5ca878
+
+# Local source wheels:
+#   apex                  from .deps/apex
+#   fake_int4_quant_cuda  from third_party/slime/slime/backends/megatron_utils/kernels/int4_qat

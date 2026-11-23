@@ -1,0 +1,12 @@
+# Loaded by Slime's --custom-config-path for multi-turn Agent GSPO.
+# Omitted agent_config.media fields inherit slime_ext.agent.protocol.DEFAULT_MEDIA_SETTINGS
+# when resolved by configure.py.
+sglang_mm_process_config:
+  image:
+    max_pixels: 1638400
+
+agent_config:
+  max_turns: 32
+  max_invalid_retries: 3
+  format_reward: 0.0
+  tg_complete_event_gate: true

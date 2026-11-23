@@ -1,0 +1,103 @@
+diff --git a/python/sglang/srt/configs/model_config.py b/python/sglang/srt/configs/model_config.py
+index b7d31af..8a16ddb 100644
+--- a/python/sglang/srt/configs/model_config.py
++++ b/python/sglang/srt/configs/model_config.py
+@@ -747,6 +747,10 @@ class ModelConfig:
+ 
+         self.hf_config.encoder_only = encoder_only
+         self.hf_config.language_only = language_only
++        thinker_config = getattr(self.hf_config, "thinker_config", None)
++        if thinker_config is not None:
++            thinker_config.encoder_only = encoder_only
++            thinker_config.language_only = language_only
+         # Checkpoints declare this one themselves (hf_transformers/processor.py),
+         # so the flag may only turn it on: writing the default back would build a
+         # vision tower with no weights to fill.
+diff --git a/python/sglang/srt/models/qwen3_omni_moe.py b/python/sglang/srt/models/qwen3_omni_moe.py
+index 1b72f9a..949ebd7 100644
+--- a/python/sglang/srt/models/qwen3_omni_moe.py
++++ b/python/sglang/srt/models/qwen3_omni_moe.py
+@@ -493,13 +493,14 @@ class Qwen3OmniMoeThinkerForConditionalGeneration(Qwen3VLMoeForConditionalGenera
+         super().__init__(
+             config, quant_config, prefix, language_model_cls=Qwen3MoeLLMModel
+         )
+-        self.audio_tower = Qwen3OmniMoeAudioEncoder(config.audio_config, quant_config)
+-        self.visual = Qwen3OmniMoeVisionEncoder(
+-            config.vision_config,
+-            quant_config=quant_config,
+-            norm_eps=getattr(config, "rms_norm_eps", 1e-6),
+-            prefix=add_prefix("visual", prefix),
+-        )
++        if not getattr(config, "language_only", False):
++            self.audio_tower = Qwen3OmniMoeAudioEncoder(config.audio_config, quant_config)
++            self.visual = Qwen3OmniMoeVisionEncoder(
++                config.vision_config,
++                quant_config=quant_config,
++                norm_eps=getattr(config, "rms_norm_eps", 1e-6),
++                prefix=add_prefix("visual", prefix),
++            )
+         self.pad_token_id = (
+             self.config.pad_token_id if self.config.pad_token_id is not None else -1
+         )
+@@ -548,6 +549,9 @@ class Qwen3OmniMoeForConditionalGeneration(PreTrainedModel):
+         super().__init__(config)
+         self.config = config
+ 
++        config.thinker_config.encoder_only = getattr(config, "encoder_only", False)
++        config.thinker_config.language_only = getattr(config, "language_only", False)
++
+         self.thinker = Qwen3OmniMoeThinkerForConditionalGeneration(
+             config.thinker_config, quant_config=quant_config, prefix=prefix
+         )
+@@ -598,6 +602,15 @@ class Qwen3OmniMoeForConditionalGeneration(PreTrainedModel):
+         params_dict = dict(self.named_parameters())
+ 
+         for name, loaded_weight in weights:
++            is_encoder_weight = any(
++                marker in name
++                for marker in ("visual.", "audio_tower.")
++            )
++            if getattr(self.config, "encoder_only", False) and not is_encoder_weight:
++                continue
++            if getattr(self.config, "language_only", False) and is_encoder_weight:
++                continue
++
+             name = name.replace(r"model.language_model.", r"model.")
+ 
+             if ("talker" in name or "code2wav" in name) and not self.enable_talker:
+diff --git a/python/sglang/srt/models/qwen3_vl.py b/python/sglang/srt/models/qwen3_vl.py
+index 6f9faff..7a3e819 100644
+--- a/python/sglang/srt/models/qwen3_vl.py
++++ b/python/sglang/srt/models/qwen3_vl.py
+@@ -1314,7 +1314,7 @@ class Qwen3VLForConditionalGeneration(nn.Module):
+         self.use_data_parallel = get_mm().mm_enable_dp_encoder
+ 
+         self.language_model_only = getattr(config, "language_model_only", False)
+-        if self.language_model_only:
++        if self.language_model_only or getattr(config, "language_only", False):
+             self.visual = None
+         else:
+             self.visual = Qwen3VLMoeVisionModel(
+diff --git a/python/sglang/srt/multimodal/processors/base_processor.py b/python/sglang/srt/multimodal/processors/base_processor.py
+index 7b9e979..7e27aa3 100644
+--- a/python/sglang/srt/multimodal/processors/base_processor.py
++++ b/python/sglang/srt/multimodal/processors/base_processor.py
+@@ -2,6 +2,7 @@ import asyncio
+ import concurrent
+ import concurrent.futures
+ import dataclasses
++from array import array
+ import multiprocessing as mp
+ import os
+ import re
+@@ -556,7 +557,9 @@ class BaseMultimodalProcessor(ABC):
+         Use prompt, img_grid_thw, video_grid_thw, and audio_seq_lens to build input_ids.
+         Supports image, video, and audio tokens.
+         """
+-        if not isinstance(prompt, list):
++        if isinstance(prompt, array):
++            prompt = prompt.tolist()
++        elif not isinstance(prompt, list):
+             prompt = self._tokenizer.encode(prompt)
+ 
+         img_token_id = getattr(self, "IM_TOKEN_ID", None)

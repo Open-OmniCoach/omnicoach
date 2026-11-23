@@ -1,0 +1,11 @@
+name: Question / Discussion
+description: Ask a question about Open-OmniCoach usage, training recipes, or paper reproduction
+labels: ["question"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Please share what you are trying to do and which module or section you looked at.
+    validations:
+      required: true

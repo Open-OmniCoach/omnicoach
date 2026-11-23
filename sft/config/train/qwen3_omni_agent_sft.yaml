@@ -1,0 +1,95 @@
+# Reported agent-SFT recipe: 12 x 8 H100-80GB, fresh init, no resume.
+# Dataset: 20 shared-media roots (16 base + 4 reflection weight buckets),
+# 248,164 trajectories / 564,562 turns; mixed-question weights are 1/N.
+# Valid student history and drafts stay supervised; invalid calls are masked.
+# Recipe (agent_sft): global batch 48, 2 epochs, 64K packs, LLM-only BF16.
+# TP4/PP1/EP8/ETP1 gives attention DP24 / expert DP12, microbatch 1 x 2.
+# ddp_timeout is seconds per collective, not total setup; 1800s covers the
+# slowest observed source (~517s) and replaces upstream's 18,000,000.
+#
+# Replace the dataset roots below with your own Agent shared-media Parquet build
+# (omnicoach-sft-export writes them), or pass --dataset to scripts/train.sh.
+ignore_args_error: true
+use_hf: true
+wandb_project: omni_sft
+micro_batch_size: 1
+save_safetensors: true
+split_dataset_ratio: 0.0
+dataset_shuffle: false
+tuner_type: full
+pipeline_model_parallel_size: 1
+use_distributed_optimizer: true
+use_precision_aware_optimizer: true
+recompute_granularity: full
+recompute_method: uniform
+recompute_num_layers: 1
+finetune: true
+eval_steps: 100000
+save_total_limit: 2
+packing: true
+packing_num_proc: 16
+lazy_tokenize: false
+dataset_num_proc: 16
+sequence_parallel: true
+gradient_accumulation_fusion: false
+report_to:
+- tensorboard
+add_version: false
+expert_model_parallel_size: 8
+expert_tensor_parallel_size: 1
+moe_aux_loss_coeff: 1.0e-06
+moe_grouped_gemm: true
+moe_permute_fusion: true
+moe_shared_expert_overlap: true
+
+global_batch_size: 48
+num_train_epochs: 2
+freeze_llm: false
+freeze_vit: true
+freeze_aligner: true
+lr: 1.0e-05
+lr_warmup_fraction: 0.03
+min_lr: 1.0e-06
+max_length: 65536
+packing_length: 65536
+
+omni_pack_length_profile: config/pack_length/qwen3_omni_contract_v1.yaml
+template_backend: swift
+agent_template: hermes
+loss_scale: last_round
+is_binary_loss_scale: false
+enable_channel_loss: true
+
+torch_dtype: bfloat16
+logging_steps: 5
+load_from_cache_file: true
+tensor_model_parallel_size: 4
+optimizer_cpu_offload: true
+optimizer_offload_fraction: 1.0
+overlap_cpu_optimizer_d2h_h2d: true
+overlap_grad_reduce: true
+overlap_param_gather: true
+overlap_param_gather_with_optimizer_step: false
+cross_entropy_loss_fusion: true
+save_strategy: steps
+dataloader_num_workers: 2
+dataloader_prefetch_factor: 1
+dataloader_persistent_workers: false
+omni_tp_data_dispatch: true
+no_save_optim: false
+no_save_rng: false
+attention_backend: flash_3
+bf16: true
+cross_entropy_fusion_impl: te
+ddp_timeout: 1800
+save_steps: 500
+
+# Example placeholder roots (the reported 248K run combines 16 base + 4 reflection roots).
+# Replace with your exported shared-media Parquet dirs, a YAML manifest, or pass --dataset.
+dataset:
+- /path/to/shared_media_run/base/source00
+- /path/to/shared_media_run/reflection/w0
+model: Qwen/Qwen3-Omni-30B-A3B-Instruct
+model_revision: 26291f793822fb6be9555850f06dfe95f2d7e695
+output_dir: output/qwen3_omni_agent_sft
+wandb_exp_name: qwen3_omni_agent_sft

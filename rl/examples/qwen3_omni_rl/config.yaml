@@ -1,0 +1,5 @@
+# Loaded by Slime's --custom-config-path for single-turn Qwen3-Omni multimodal RL.
+qwen3_omni_rl:
+  advantage_estimator: grpo
+  reward_type: auto  # auto | mcq | av_match | temporal_iou
+  ablation_mode: none  # none | no-audio | no-image | text-only

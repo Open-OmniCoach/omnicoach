@@ -1,0 +1,20 @@
+schema_version: omni_pack_length/v1
+mode: contract_stats
+
+image:
+  tokens_per_image: 152
+  max_pixels: 147456
+
+audio:
+  tokens_per_second: 13
+  tail_tokens: 2
+  sample_rate: 16000
+  hop_length: 160
+
+safety_tokens: 128
+round_up_to: 256
+exact_encode_threshold: 64000
+exact_encode_upper_bound: 67584
+overflow: filter
+map_batch_size: 256
+lock_stale_seconds: 600
