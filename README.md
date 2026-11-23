@@ -6,6 +6,8 @@
 
 ### Evidence-Enhanced Trajectory Learning for Omni Video Agents
 
+**Project Leader:** Xiangtai Li
+
 <p>
   <a href="#news--release-roadmap"><img src="https://img.shields.io/badge/Paper-arXiv_(Coming_Soon)-B31B1B?logo=arxiv&logoColor=white" alt="Paper"></a>
   <a href="https://open-omnicoach.github.io"><img src="https://img.shields.io/badge/Project-Page-2E5D66?logo=googlechrome&logoColor=white" alt="Project Page"></a>
