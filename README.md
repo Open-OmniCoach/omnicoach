@@ -9,6 +9,7 @@
 **Project Leader:** Xiangtai Li
 
 <p>
+  <a href="https://github.com/Open-OmniCoach/omnicoach/stargazers"><img src="https://img.shields.io/github/stars/Open-OmniCoach/omnicoach?style=social" alt="GitHub Stars"></a>
   <a href="#news--release-roadmap"><img src="https://img.shields.io/badge/Paper-arXiv_(Coming_Soon)-B31B1B?logo=arxiv&logoColor=white" alt="Paper"></a>
   <a href="https://open-omnicoach.github.io"><img src="https://img.shields.io/badge/Project-Page-2E5D66?logo=googlechrome&logoColor=white" alt="Project Page"></a>
   <a href="https://huggingface.co/collections/Open-OmniCoach/open-omnicoach-6b02b581ecac90284c6009d9"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Collection-Open--OmniCoach-FFD21E" alt="HF Collection"></a>
@@ -50,7 +51,10 @@
 
 **Upcoming**
 - [ ] Paper on arXiv
+- [ ] 17.4K reflection recovery trajectories on [OmniCoach-240K](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K)
 - [ ] Full SEPO step-level credit RL recipe
+
+> ⭐ **Star / Watch** this repository to stay notified when the paper, 17.4K reflection trajectories, and full SEPO RL recipe are released!
 
 ## Model and Dataset Zoo
 
@@ -260,13 +264,14 @@ DRY_RUN=1 bash examples/qwen3_omni_agent_gspo/run.sh
 
 ## Citation
 
-If you find **Open-OmniCoach** helpful for your research, please consider citing:
+If you find **Open-OmniCoach** helpful for your research, please consider giving this repository a ⭐ and citing:
 
 ```bibtex
 @misc{liu2026openomnicoach,
   title   = {Open-OmniCoach: Evidence-Enhanced Trajectory Learning for Omni Video Agents},
   author  = {Weisong Liu and Xiangtai Li and Haochen Wang and Haiquan Wen and Zhaoxiang Zhang},
   year    = {2026},
+  url     = {https://github.com/Open-OmniCoach/omnicoach},
   note    = {arXiv preprint, coming soon}
 }
 ```

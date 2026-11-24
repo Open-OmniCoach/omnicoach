@@ -9,6 +9,7 @@
 **项目负责人：** Xiangtai Li
 
 <p>
+  <a href="https://github.com/Open-OmniCoach/omnicoach/stargazers"><img src="https://img.shields.io/github/stars/Open-OmniCoach/omnicoach?style=social" alt="GitHub Stars"></a>
   <a href="#发布动态与路线图"><img src="https://img.shields.io/badge/Paper-arXiv_(Coming_Soon)-B31B1B?logo=arxiv&logoColor=white" alt="Paper"></a>
   <a href="https://open-omnicoach.github.io"><img src="https://img.shields.io/badge/Project-Page-2E5D66?logo=googlechrome&logoColor=white" alt="Project Page"></a>
   <a href="https://huggingface.co/collections/Open-OmniCoach/open-omnicoach-6b02b581ecac90284c6009d9"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Collection-Open--OmniCoach-FFD21E" alt="HF Collection"></a>
@@ -50,7 +51,10 @@
 
 **即将发布**
 - [ ] arXiv 论文
+- [ ] [OmniCoach-240K](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) 的 17.4K 反思纠错轨迹
 - [ ] 完整 SEPO 步级信用 RL 配方
+
+> ⭐ 欢迎点击 **Star / Watch** 关注仓库，论文、17.4K 反思轨迹与完整 SEPO 配方发布后将第一时间更新！
 
 ## 模型与数据集
 
@@ -136,11 +140,14 @@ cd omnicoach
 
 ## 引用
 
+如果 **Open-OmniCoach** 对您的研究有所帮助，欢迎给本仓库点个 ⭐ 并引用我们的工作：
+
 ```bibtex
 @misc{liu2026openomnicoach,
   title   = {Open-OmniCoach: Evidence-Enhanced Trajectory Learning for Omni Video Agents},
   author  = {Weisong Liu and Xiangtai Li and Haochen Wang and Haiquan Wen and Zhaoxiang Zhang},
   year    = {2026},
+  url     = {https://github.com/Open-OmniCoach/omnicoach},
   note    = {arXiv preprint, coming soon}
 }
 ```
