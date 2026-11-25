@@ -63,7 +63,9 @@
 | --- | --- | --- | --- |
 | [**Open-OmniAgent-7B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) | Qwen2.5-Omni-7B | 7B | 已发布 |
 | [**Open-OmniAgent-30B-A3B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) | Qwen3-Omni-30B-A3B-Instruct | 30B（3B 激活 MoE） | 已发布 |
-| [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) | 230.7K 多片段轨迹 + 17.4K 反思纠错轨迹 | 248.2K 轨迹 | 已发布 |
+| [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) | 230.7K 多片段轨迹 + 17.4K 反思纠错轨迹 | 248.2K 轨迹 | 种子 SFT 与 RL 数据已发布 |
+
+[**OmniCoach-240K 下载与使用指南**](docs/omnicoach-240k.md)提供轨迹预览、预构建 SFT 与 RL Parquet 下载，以及训练数据准备说明。
 
 ## 核心性能一览
 

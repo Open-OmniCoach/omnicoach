@@ -39,6 +39,6 @@ pytest -v tests
 
 Launch training with `scripts/train.sh`, which runs `python -m omnicoach_sft sft` and honours standard `torchrun` environment variables (`MASTER_ADDR`, `MASTER_PORT`, `NODE_RANK`, `NNODES`, and `NPROC_PER_NODE`). `DRY_RUN=1` previews the launcher configuration without requiring GPUs or dataset files.
 
-`config/train/qwen3_omni_agent_sft.yaml` holds the reported Agent-SFT recipe with placeholder `dataset:` roots—export your own Agent shared-media Parquet first, then edit a copy of the config or pass `--dataset` to `scripts/train.sh`.
+`config/train/qwen3_omni_agent_sft.yaml` holds the reported Agent-SFT recipe with placeholder `dataset:` roots. Use the [released OmniCoach-240K seed Parquet](../docs/omnicoach-240k.md#download-prebuilt-sft-parquet) or export your own Agent shared-media Parquet, then edit a copy of the config or pass `--dataset` to `scripts/train.sh`.
 
 Licensed under the [Apache License 2.0](../LICENSE).

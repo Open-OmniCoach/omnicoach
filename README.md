@@ -63,9 +63,11 @@
 | --- | --- | --- | --- |
 | [**Open-OmniAgent-7B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) | Qwen2.5-Omni-7B | 7B | Available |
 | [**Open-OmniAgent-30B-A3B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) | Qwen3-Omni-30B-A3B-Instruct | 30B (3B active MoE) | Available |
-| [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) | 230.7K multi-span + 17.4K reflection trajectories | 248.2K trajectories | Available |
+| [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) | 230.7K multi-span + 17.4K reflection trajectories | 248.2K trajectories | Seed SFT and RL available |
 
-> All checkpoints and trajectory datasets are publicly available in the [**Open-OmniCoach Hugging Face Collection**](https://huggingface.co/collections/Open-OmniCoach/open-omnicoach-6b02b581ecac90284c6009d9).
+[**Download and use OmniCoach-240K**](docs/omnicoach-240k.md) to preview trajectories, get the prebuilt SFT or RL Parquet, and prepare training data.
+
+> Browse the released checkpoints and dataset in the [**Open-OmniCoach Hugging Face Collection**](https://huggingface.co/collections/Open-OmniCoach/open-omnicoach-6b02b581ecac90284c6009d9).
 
 ## Performance at a Glance
 
