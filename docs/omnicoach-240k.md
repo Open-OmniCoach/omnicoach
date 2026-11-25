@@ -14,15 +14,18 @@ Install the Hugging Face CLI for the download commands below with `python -m pip
 
 ## Preview seed SFT trajectories
 
-Install `datasets` and stream a row without downloading the full split:
+Open the [Dataset Viewer](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K/viewer/sft_seed/train) or read the first row of a seed JSONL file with Python:
 
 ```python
-from datasets import load_dataset
+import json
+from urllib.request import urlopen
 
-traces = load_dataset(
-    "Open-OmniCoach/OmniCoach-240K", "sft_seed", split="train", streaming=True
+url = (
+    "https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K/resolve/main/"
+    "sft/raw_data/seed/part_01.jsonl"
 )
-row = next(iter(traces))
+with urlopen(url, timeout=30) as response:
+    row = json.loads(response.readline())
 print(row["trajectory_id"], row["video_source"])
 ```
 
@@ -46,10 +49,10 @@ hf download Open-OmniCoach/OmniCoach-240K --repo-type dataset \
 
 Keep `dataset_contract.json`, `turns/`, and `media/` together in each `part_XX/` directory. The turn rows reference encoded frames and audio in that part's media table. The prebuilt seed parts already contain these training inputs.
 
-After setting up the [SFT environment](../sft/README.md#setup), validate the part with its local absolute path:
+After setting up the [SFT environment](../sft/README.md#setup), run this from `sft/` using the part's local absolute path:
 
 ```bash
-omnicoach-sft-inspect /path/to/OmniCoach-240K/sft/parquet/seed/part_01 --validate
+.venv/bin/omnicoach-sft-inspect /path/to/OmniCoach-240K/sft/parquet/seed/part_01 --validate
 ```
 
 To train, use the downloaded part directories as `dataset:` entries in a copy of the [SFT config](../sft/config/train/qwen3_omni_agent_sft.yaml), or pass those directories to `scripts/train.sh` with `--dataset`. See the [SFT README](../sft/README.md#cli-tools--training) for the launcher and the exporter for custom trajectories.
