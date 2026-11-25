@@ -10,7 +10,7 @@
 
 <p>
   <a href="https://github.com/Open-OmniCoach/omnicoach/stargazers"><img src="https://img.shields.io/github/stars/Open-OmniCoach/omnicoach?style=social" alt="GitHub Stars"></a>
-  <a href="#发布动态与路线图"><img src="https://img.shields.io/badge/Paper-arXiv_(Coming_Soon)-B31B1B?logo=arxiv&logoColor=white" alt="Paper"></a>
+  <a href="https://arxiv.org/abs/2611.31891"><img src="https://img.shields.io/badge/arXiv-2611.31891-B31B1B?logo=arxiv&logoColor=white" alt="arXiv:2611.31891"></a>
   <a href="https://open-omnicoach.github.io"><img src="https://img.shields.io/badge/Project-Page-2E5D66?logo=googlechrome&logoColor=white" alt="Project Page"></a>
   <a href="https://huggingface.co/collections/Open-OmniCoach/open-omnicoach-6b02b581ecac90284c6009d9"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Collection-Open--OmniCoach-FFD21E" alt="HF Collection"></a>
   <a href="https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Model-Open--OmniAgent_30B-F59E0B" alt="HF Model 30B"></a>
@@ -38,9 +38,11 @@
 
 ## 发布动态与路线图
 
+- **[2026-11-25]** 已发布 [arXiv 论文](https://arxiv.org/abs/2611.31891)。
 - **[2026-11]** 正式发布 **Open-OmniCoach** 开源代码（`harness/`、`sft/`、`rl/`、`evalkit/`）、[项目主页](https://open-omnicoach.github.io)、[**Open-OmniAgent-7B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) 与 [**Open-OmniAgent-30B-A3B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) 模型权重，以及 [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) 轨迹数据集。
 
 **已发布**
+- [x] [arXiv 论文](https://arxiv.org/abs/2611.31891)
 - [x] [项目主页与交互式轨迹浏览器](https://open-omnicoach.github.io)
 - [x] 离线轨迹采集框架（[`harness/`](harness/README.md)）
 - [x] Agent SFT 训练与共享媒体 Parquet 管线（[`sft/`](sft/README.md)）
@@ -50,11 +52,10 @@
 - [x] Hugging Face 轨迹数据集（[`OmniCoach-240K`](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K)）
 
 **即将发布**
-- [ ] arXiv 论文
 - [ ] [OmniCoach-240K](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) 的 17.4K 反思纠错轨迹
 - [ ] 完整 SEPO 步级信用 RL 配方
 
-> ⭐ 欢迎点击 **Star / Watch** 关注仓库，论文、17.4K 反思轨迹与完整 SEPO 配方发布后将第一时间更新！
+> ⭐ 欢迎点击 **Star / Watch** 关注仓库，17.4K 反思轨迹与完整 SEPO 配方发布后将第一时间更新！
 
 ## 模型与数据集
 
@@ -106,7 +107,7 @@
 
 轨迹级统一优势无法区分一次 rollout 中“拿到关键证据的步骤”和“冗余调用”。**SEPO** 基于每步新覆盖的标注证据增益 $\Delta U$ 计算步级过程信用，并通过 **Turn-Level GSPO**（`--use-turn-level-gspo`）按轮次计算几何平均重要性比率进行策略更新。
 
-> **说明：** 当前仓库已在 [`rl/`](rl/README.md) 开放通用的 Turn-Level GSPO 引擎（`--use-turn-level-gspo`）与纯结果奖励的 Agent-GSPO 配方；完整的 SEPO 步级信用配方将随论文一并开源。
+> **说明：** 当前仓库已在 [`rl/`](rl/README.md) 开放通用的 Turn-Level GSPO 引擎（`--use-turn-level-gspo`）与纯结果奖励的 Agent-GSPO 配方；完整的 SEPO 步级信用配方计划后续发布。
 
 ## 仓库目录与快速开始
 
@@ -144,11 +145,13 @@ cd omnicoach
 
 ```bibtex
 @misc{liu2026openomnicoach,
-  title   = {Open-OmniCoach: Evidence-Enhanced Trajectory Learning for Omni Video Agents},
-  author  = {Weisong Liu and Xiangtai Li and Haochen Wang and Haiquan Wen and Zhaoxiang Zhang},
-  year    = {2026},
-  url     = {https://github.com/Open-OmniCoach/omnicoach},
-  note    = {arXiv preprint, coming soon}
+  title         = {Open-OmniCoach: Evidence-Enhanced Trajectory Learning for Omni Video Agents},
+  author        = {Weisong Liu and Xiangtai Li and Haochen Wang and Haiquan Wen and Zhaoxiang Zhang},
+  year          = {2026},
+  eprint        = {2611.31891},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2611.31891}
 }
 ```
 

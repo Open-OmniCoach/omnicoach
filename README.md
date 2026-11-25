@@ -10,7 +10,7 @@
 
 <p>
   <a href="https://github.com/Open-OmniCoach/omnicoach/stargazers"><img src="https://img.shields.io/github/stars/Open-OmniCoach/omnicoach?style=social" alt="GitHub Stars"></a>
-  <a href="#news--release-roadmap"><img src="https://img.shields.io/badge/Paper-arXiv_(Coming_Soon)-B31B1B?logo=arxiv&logoColor=white" alt="Paper"></a>
+  <a href="https://arxiv.org/abs/2611.31891"><img src="https://img.shields.io/badge/arXiv-2611.31891-B31B1B?logo=arxiv&logoColor=white" alt="arXiv:2611.31891"></a>
   <a href="https://open-omnicoach.github.io"><img src="https://img.shields.io/badge/Project-Page-2E5D66?logo=googlechrome&logoColor=white" alt="Project Page"></a>
   <a href="https://huggingface.co/collections/Open-OmniCoach/open-omnicoach-6b02b581ecac90284c6009d9"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Collection-Open--OmniCoach-FFD21E" alt="HF Collection"></a>
   <a href="https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Model-Open--OmniAgent_30B-F59E0B" alt="HF Model 30B"></a>
@@ -38,9 +38,11 @@
 
 ## News & Release Roadmap
 
+- **[2026-11-25]** Released the [arXiv paper](https://arxiv.org/abs/2611.31891).
 - **[2026-11]** Released the **Open-OmniCoach** codebase (`harness/`, `sft/`, `rl/`, `evalkit/`), interactive [project page](https://open-omnicoach.github.io), [**Open-OmniAgent-7B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-7B) & [**Open-OmniAgent-30B-A3B**](https://huggingface.co/Open-OmniCoach/Open-OmniAgent-30B-A3B) checkpoints, and [**OmniCoach-240K**](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) trajectory dataset.
 
 **Released**
+- [x] [Paper on arXiv](https://arxiv.org/abs/2611.31891)
 - [x] [Project page & interactive trajectory explorer](https://open-omnicoach.github.io)
 - [x] Offline trace-collection harness ([`harness/`](harness/README.md))
 - [x] Agent SFT & shared-media Parquet pipeline ([`sft/`](sft/README.md))
@@ -50,11 +52,10 @@
 - [x] [`OmniCoach-240K`](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K) trajectory dataset on Hugging Face
 
 **Upcoming**
-- [ ] Paper on arXiv
 - [ ] 17.4K reflection recovery trajectories on [OmniCoach-240K](https://huggingface.co/datasets/Open-OmniCoach/OmniCoach-240K)
 - [ ] Full SEPO step-level credit RL recipe
 
-> ⭐ **Star / Watch** this repository to stay notified when the paper, 17.4K reflection trajectories, and full SEPO RL recipe are released!
+> ⭐ **Star / Watch** this repository to stay notified when the 17.4K reflection trajectories and full SEPO RL recipe are released!
 
 ## Model and Dataset Zoo
 
@@ -170,7 +171,7 @@ Starting from a coarse overview of the video, the agent iteratively requests fin
 
 Trajectory-level RL rewards assign the same advantage to every step in a rollout, blurring useful evidence retrieval and redundant calls. **SEPO** scores each tool turn by its incremental gain in annotated evidence coverage and temporal localization ($\Delta U$), combining outcome advantage with step-conditioned leave-one-out process credit and optimizing per-turn policy ratios via **Turn-Level GSPO** (`--use-turn-level-gspo`).
 
-> **Note:** The generic Turn-Level GSPO engine (`--use-turn-level-gspo`) and outcome-based Agent-GSPO recipe are included in [`rl/`](rl/README.md). The full SEPO step-level credit recipe will be released alongside the paper.
+> **Note:** The generic Turn-Level GSPO engine (`--use-turn-level-gspo`) and outcome-based Agent-GSPO recipe are included in [`rl/`](rl/README.md). The full SEPO step-level credit recipe is planned for a future release.
 
 ## Repository Structure
 
@@ -268,11 +269,13 @@ If you find **Open-OmniCoach** helpful for your research, please consider giving
 
 ```bibtex
 @misc{liu2026openomnicoach,
-  title   = {Open-OmniCoach: Evidence-Enhanced Trajectory Learning for Omni Video Agents},
-  author  = {Weisong Liu and Xiangtai Li and Haochen Wang and Haiquan Wen and Zhaoxiang Zhang},
-  year    = {2026},
-  url     = {https://github.com/Open-OmniCoach/omnicoach},
-  note    = {arXiv preprint, coming soon}
+  title         = {Open-OmniCoach: Evidence-Enhanced Trajectory Learning for Omni Video Agents},
+  author        = {Weisong Liu and Xiangtai Li and Haochen Wang and Haiquan Wen and Zhaoxiang Zhang},
+  year          = {2026},
+  eprint        = {2611.31891},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2611.31891}
 }
 ```
 
